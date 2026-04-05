@@ -481,7 +481,7 @@ def get_threat_log() -> list[dict]:
 
 # ─── Tool Declarations for Raw Gemini Live Mode ───
 
-OMNID3SK_TOOL_DECLARATIONS = [
+OMNI_TOOL_DECLARATIONS = [
     {
         "name": "scan_url_safety",
         "description": (

@@ -1,5 +1,5 @@
 """
-Shield Analyzer (OmniD3sk) — Multi-layer scam/phishing detection.
+Shield Analyzer (OmniShield) — Multi-layer scam/phishing detection.
 
 Five detection layers:
 0. OSINT Domain Analysis — instant heuristics (typosquatting, TLD reputation, brand impersonation)
