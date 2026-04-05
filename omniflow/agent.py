@@ -37,7 +37,7 @@ from server.tools.ui_navigator import navigate_user_browser
 from server.agents.diagnostic_expert import diagnose_issue
 
 # ─── OmniShield Tools ───
-from server.tools.omnid3sk_tools import (
+from server.tools.omni_tools import (
     scan_url_safety,
     check_domain_reputation,
     analyze_page_for_threats,
@@ -52,7 +52,7 @@ from server.tools.calendar_mcp import book_calendar_slot
 from server.tools.notes_mcp import save_threat_report_to_notion
 
 # ─── Prompts ───
-from server.prompts import get_system_prompt, get_omnid3sk_prompt
+from server.prompts import get_system_prompt, get_omni_prompt
 
 MODEL = os.getenv("MODEL", "gemini-2.5-flash")
 RESEARCH_MODEL = os.getenv("RESEARCH_MODEL", "gemini-2.5-flash")
@@ -94,7 +94,7 @@ omnishield = Agent(
         "Also transfer when you see suspicious pages on the user's screen, or when "
         "the user is about to enter credentials or payment on an unfamiliar site."
     ),
-    instruction=get_omnid3sk_prompt(),
+    instruction=get_omni_prompt(),
     tools=[
         FunctionTool(scan_url_safety),
         FunctionTool(check_domain_reputation),

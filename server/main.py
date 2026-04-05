@@ -465,7 +465,7 @@ async def navigate_page(request: Request):
 @app.get("/api/threats")
 async def get_threats():
     """Return the OmniShield threat log."""
-    from server.tools.omnid3sk_tools import get_threat_log
+    from server.tools.omni_tools import get_threat_log
     threats = get_threat_log()
     return JSONResponse(content={
         "threats": threats,

@@ -2,7 +2,7 @@ import json
 import logging
 from typing import Dict, Any
 
-from server.tools.omnid3sk_tools import scan_url_safety
+from server.tools.omni_tools import scan_url_safety
 from server.tools.itsm import create_itsm_ticket
 from server.tools.notes_mcp import save_threat_report_to_notion
 from server.tools.calendar_mcp import book_calendar_slot

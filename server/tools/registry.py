@@ -11,7 +11,7 @@ from server.tools.issue_tracker import create_issue, ISSUE_DECLARATIONS
 from server.agents.diagnostic_expert import diagnose_issue, DIAGNOSIS_DECLARATIONS
 from server.tools.search_grounding import research_support_topic, SEARCH_GROUNDING_DECLARATIONS
 from server.tools.ui_navigator import navigate_user_browser, UI_NAVIGATOR_DECLARATIONS
-from server.tools.omnid3sk_tools import (
+from server.tools.omni_tools import (
     scan_url_safety,
     check_domain_reputation,
     analyze_page_for_threats,
@@ -19,7 +19,7 @@ from server.tools.omnid3sk_tools import (
     detect_fake_content,
     report_threat,
     highlight_danger_zones,
-    OMNID3SK_TOOL_DECLARATIONS,
+    OMNI_TOOL_DECLARATIONS,
 )
 from server.tools.calendar_mcp import book_calendar_slot, CALENDAR_DECLARATIONS
 from server.tools.notes_mcp import save_threat_report_to_notion, NOTES_DECLARATIONS
@@ -35,7 +35,7 @@ TOOL_DECLARATIONS: List[Dict] = [
     *DIAGNOSIS_DECLARATIONS,
     *SEARCH_GROUNDING_DECLARATIONS,
     *UI_NAVIGATOR_DECLARATIONS,
-    *OMNID3SK_TOOL_DECLARATIONS,
+    *OMNI_TOOL_DECLARATIONS,
     *CALENDAR_DECLARATIONS,
     *NOTES_DECLARATIONS,
 ]

@@ -24,6 +24,13 @@ class GeminiLive:
 
     async def start_session(self, audio_input_queue, video_input_queue, text_input_queue,
                            audio_output_callback, audio_interrupt_callback=None, setup_config=None):
+        # Default fallback system instruction
+        _default_system_prompt = (
+            'You are Olivia, the OmniD3sk AI assistant. Help users with IT support issues. '
+            'Call each tool only ONCE. After all tools complete, give one brief verbal summary '
+            'of what was accomplished. NEVER call the same tool twice in one session.'
+        )
+
         config_args = {
             "response_modalities": [types.Modality.AUDIO],
             "speech_config": types.SpeechConfig(
@@ -31,11 +38,23 @@ class GeminiLive:
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Leda")
                 )
             ),
-            "system_instruction": types.Content(parts=[types.Part.from_text(
-                text='You are Olivia, the Master Orchestrator AI for OmniD3sk. CRITICAL DIRECTIVE: For security incidents, you MUST use the execute_security_playbook tool. Do not call individual granular tools. Wait for the playbook to finish, then give one single, brief confirmation explicitly stating the specific Ticket ID and Notion URL that the playbook created.'
-            )]),
+            "system_instruction": types.Content(parts=[types.Part.from_text(text=_default_system_prompt)]),
         }
+
         if setup_config:
+            # Use client's system instruction if provided (contains full SYSTEM_PROMPT)
+            if "system_instruction" in setup_config:
+                try:
+                    parts = setup_config["system_instruction"].get("parts", [])
+                    if parts and parts[0].get("text"):
+                        client_prompt = parts[0]["text"]
+                        config_args["system_instruction"] = types.Content(
+                            parts=[types.Part.from_text(text=client_prompt)]
+                        )
+                        logger.info(f"Using client system instruction ({len(client_prompt)} chars)")
+                except Exception as e:
+                    logger.warning(f"Error parsing system_instruction from client: {e}")
+
             if "proactivity" in setup_config:
                 try:
                     proactive_audio = setup_config["proactivity"].get("proactiveAudio", False)
@@ -116,9 +135,11 @@ class GeminiLive:
                     pass
 
             async def send_text():
+                nonlocal _awaiting_user_input
                 try:
                     while True:
                         text = await text_input_queue.get()
+                        _awaiting_user_input = False  # Text input = new user turn, reset gate
                         await session.send(input=text, end_of_turn=True)
                 except asyncio.CancelledError:
                     pass
@@ -188,7 +209,8 @@ class GeminiLive:
                                 _awaiting_user_input = False
                                 function_responses = []
                                 client_tool_calls = []
-                                for fc in tool_call.function_calls:
+
+                                async def _execute_tool(fc):
                                     func_name = fc.name
                                     args = fc.args or {}
                                     if func_name in self.tool_mapping:
@@ -197,21 +219,35 @@ class GeminiLive:
                                             if inspect.iscoroutinefunction(tool_func):
                                                 result = await tool_func(**args)
                                             else:
-                                                loop = asyncio.get_running_loop()
-                                                result = await loop.run_in_executor(None, lambda: tool_func(**args))
+                                                _loop = asyncio.get_running_loop()
+                                                result = await _loop.run_in_executor(None, lambda: tool_func(**args))
                                         except Exception as e:
                                             result = f"Error: {e}"
+                                        return ("backend", fc, func_name, args, result)
+                                    else:
+                                        return ("client", fc)
+
+                                results = await asyncio.gather(*[_execute_tool(fc) for fc in tool_call.function_calls], return_exceptions=True)
+
+                                for res in results:
+                                    if isinstance(res, Exception):
+                                        continue
+                                    if res[0] == "backend":
+                                        _, fc, func_name, args, result = res
                                         function_responses.append(types.FunctionResponse(
                                             name=func_name, id=fc.id, response={"result": result}
                                         ))
                                         await event_queue.put({"type": "tool_call", "name": func_name, "args": args, "result": result})
                                     else:
-                                        client_tool_calls.append({"name": fc.name, "args": args, "id": fc.id})
+                                        _, fc = res
+                                        client_tool_calls.append({"name": fc.name, "args": fc.args, "id": fc.id})
 
                                 if client_tool_calls:
                                     await event_queue.put({"toolCall": {"functionCalls": client_tool_calls}})
                                 if function_responses:
-                                    await session.send_tool_response(function_responses=function_responses)
+                                    await session.send(input=types.LiveClientToolResponse(
+                                        function_responses=function_responses
+                                    ))
 
                 except Exception as e:
                     await event_queue.put({"type": "error", "error": str(e)})
@@ -229,8 +265,16 @@ class GeminiLive:
                     if event is None:
                         break
                     yield event
+            except asyncio.CancelledError:
+                logger.info("GeminiLive session cancelled — cleaning up tasks")
             finally:
                 send_audio_task.cancel()
                 send_video_task.cancel()
                 send_text_task.cancel()
                 receive_task.cancel()
+                # Await all tasks with a short timeout to prevent hangs
+                await asyncio.gather(
+                    send_audio_task, send_video_task,
+                    send_text_task, receive_task,
+                    return_exceptions=True
+                )
