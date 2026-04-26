@@ -10,3 +10,6 @@ google-auth-oauthlib==1.2.1
 google-api-python-client==2.165.0
 google-adk>=1.0.0
 google-cloud-webrisk>=1.14.0
+# ── Multi-tenant additions ──────────────────────────────────────────────────
+pymongo[srv]>=4.7.0
+PyJWT>=2.8.0

@@ -19,6 +19,9 @@ from server.config_utils import get_project_id
 from server.tools import register_all_tools, TOOL_DECLARATIONS
 from server.session_state import create_session, get_session, end_session
 from server.adk_agent import is_adk_enabled
+# ── Multi-tenant: auth + integrations ──
+from server.auth import router as auth_router
+from server.integrations import router as integrations_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -61,11 +64,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve static files
+# ── Multi-tenant routers ──
+app.include_router(auth_router)
+app.include_router(integrations_router)
+
+# Serve static files from the Vite build output (dist/)
+# Mount each known subdirectory explicitly — FastAPI requires directory-level mounts.
+# The catch-all GET route below handles index.html and file fallthrough.
 if os.path.exists("dist/assets"):
     app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
+    logger.info("Static: mounted dist/assets → /assets")
 if os.path.exists("dist/audio-processors"):
     app.mount("/audio-processors", StaticFiles(directory="dist/audio-processors"), name="audio-processors")
+    logger.info("Static: mounted dist/audio-processors → /audio-processors")
+if os.path.exists("dist/public"):
+    app.mount("/public", StaticFiles(directory="dist/public"), name="public")
+    logger.info("Static: mounted dist/public → /public")
 
 # In-memory token storage
 valid_tokens: Dict[str, float] = {}
@@ -484,9 +498,24 @@ async def serve_spa(full_path: str):
 
 @app.on_event("startup")
 async def on_startup():
-    # Phase 2: Initialize SQLite
+    import asyncio
+
+    # SQLite (tickets) — instant, keep synchronous
     from server.db import init_db
     init_db()
+
+    # MongoDB — connect in background so uvicorn is ready immediately
+    async def _init_mongo():
+        try:
+            loop = asyncio.get_event_loop()
+            from server.mongo_db import _get_db
+            await loop.run_in_executor(None, _get_db)
+            log_activity("system", "MongoDB connected", "Multi-tenant user store ready")
+        except Exception as e:
+            logger.warning(f"MongoDB not connected (multi-tenant features disabled): {e}")
+
+    asyncio.create_task(_init_mongo())
+
     log_activity("system", "OmniD3sk started",
                  f"Model: {MODEL} | ADK: {is_adk_enabled()} | "
                  f"Agents: omniagent+omnishield+researcher+threat_intel | "
