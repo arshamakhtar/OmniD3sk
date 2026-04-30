@@ -1,0 +1,10 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="900" fill="#0D1117" />
+  <text x="600" y="50" font-family="Arial" font-size="28" font-weight="bold" text-anchor="middle" fill="#FFFFFF">OmniD3sk SOLUTION PHASES</text>
+  <rect x="50" y="100" width="1100" height="200" rx="12" fill="#161B22" stroke="#30363D" />
+  <text x="70" y="130" font-family="Arial" font-size="14" font-weight="bold" fill="#58A6FF">PHASE 1: AUTHENTICATION</text>
+  <rect x="50" y="350" width="1100" height="250" rx="12" fill="#161B22" stroke="#30363D" />
+  <text x="70" y="380" font-family="Arial" font-size="14" font-weight="bold" fill="#238636">PHASE 2: WEBSOCKET SETUP</text>
+  <rect x="50" y="650" width="1100" height="200" rx="12" fill="#161B22" stroke="#30363D" />
+  <text x="70" y="680" font-family="Arial" font-size="14" font-weight="bold" fill="#D29922">PHASE 3: STREAMING &amp; TOOLS</text>
+</svg>
