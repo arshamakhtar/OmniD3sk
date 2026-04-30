@@ -6,7 +6,6 @@ __pycache__/
 .env.example
 gcp-key.json
 *.db
-web/
 .git/
 .agents/
 tmp/
