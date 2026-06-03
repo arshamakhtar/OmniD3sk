@@ -34,3 +34,5 @@ tmp/
 .DS_Store
 Thumbs.db
 *.log
+OMNIFLOW_DIAGNOSTICS.md
+QUICKFIX_REALTIME_DATA.md
