@@ -14,6 +14,8 @@ from datetime import datetime, timedelta
 import google.genai as genai
 from google.genai import types
 
+from server.tools.tool_context import notify_tool_started, notify_tool_progress, notify_tool_completed
+
 logger = logging.getLogger(__name__)
 
 _client = None
@@ -33,12 +35,16 @@ def _get_client():
 async def research_support_topic(query: str) -> str:
     """Research an IT support topic using Google Search for latest solutions and updates."""
     
+    # Notify user that search is starting
+    await notify_tool_started("research_support_topic", f"Searching: {query[:60]}...")
+    
     # Check cache first
     cache_key = hashlib.sha256(query.encode()).hexdigest()
     if cache_key in _search_cache:
         result, ts = _search_cache[cache_key]
         if (datetime.now() - ts).total_seconds() < CACHE_TTL_MINUTES * 60:
             logger.info(f"Cache HIT: research_support_topic({query[:50]}...)")
+            await notify_tool_completed("research_support_topic", "Results found in cache")
             return result
 
     async def _do_research():
@@ -46,6 +52,7 @@ async def research_support_topic(query: str) -> str:
         start = time.time()
         try:
             logger.info(f"Starting search grounding for: {query[:50]}...")
+            await notify_tool_progress("research_support_topic", "Querying Gemini API with web search...")
             client = _get_client()
             loop = asyncio.get_running_loop()
             
@@ -97,11 +104,13 @@ async def research_support_topic(query: str) -> str:
             # Cache the result
             _search_cache[cache_key] = (result, datetime.now())
             elapsed = time.time() - start
+            await notify_tool_completed("research_support_topic", f"Found {len(grounding_sources)} sources in {elapsed:.1f}s")
             logger.info(f"Cache SET: research_support_topic completed in {elapsed:.1f}s")
             return result
 
         except Exception as e:
             elapsed = time.time() - start
+            await notify_tool_progress("research_support_topic", f"Error: {str(e)[:100]}")
             logger.error(f"Google Search grounding error after {elapsed:.1f}s: {e}", exc_info=True)
             return json.dumps({
                 "success": False,
@@ -111,13 +120,13 @@ async def research_support_topic(query: str) -> str:
             })
 
     try:
-        return await asyncio.wait_for(_do_research(), timeout=25.0)
+        return await asyncio.wait_for(_do_research(), timeout=40.0)
     except asyncio.TimeoutError:
-        logger.warning(f"research_support_topic timed out after 25s for query: {query[:50]}...")
+        await notify_tool_progress("research_support_topic", "Timeout - API response taking too long (40s+)")
         return json.dumps({
             "success": False,
             "query": query,
-            "error": "Research timed out after 25s",
+            "error": "Research timed out after 40s",
             "answer": "Web research timed out. The Gemini API or Google Search is running slowly. Proceeding with internal knowledge base only.",
         })
 
