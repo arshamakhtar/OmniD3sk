@@ -17,6 +17,7 @@ load_dotenv(override=True)
 from server.gemini_live import GeminiLive
 from server.config_utils import get_project_id
 from server.tools import register_all_tools, TOOL_DECLARATIONS
+from server.tools.tool_context import set_status_callback
 from server.session_state import create_session, get_session, end_session
 from server.adk_agent import is_adk_enabled
 # ── Multi-tenant: auth + integrations ──
@@ -203,6 +204,17 @@ async def websocket_endpoint(websocket: WebSocket, token: Optional[str] = None):
                 })
             except:
                 pass
+
+    async def send_tool_status(message):
+        """Callback for tools to send real-time status updates."""
+        try:
+            await websocket.send_json(message)
+            logger.debug(f"Tool status sent: {message.get('tool')} - {message.get('status')}")
+        except Exception as e:
+            logger.warning(f"Error sending tool status: {e}")
+
+    # Register tool status callback so tools can send real-time updates
+    set_status_callback(send_tool_status)
 
     audio_input_queue = asyncio.Queue()
     video_input_queue = asyncio.Queue()

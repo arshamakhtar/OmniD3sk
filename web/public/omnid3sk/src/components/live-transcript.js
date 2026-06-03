@@ -101,6 +101,43 @@ class LiveTranscript extends HTMLElement {
         container.appendChild(indicator);
     }
 
+    /** Handle tool status updates from the backend */
+    updateToolStatus(toolStatus) {
+        const { tool, status, detail } = toolStatus;
+        
+        // Format tool name for display (e.g., research_support_topic -> Web Research)
+        const toolLabel = this._formatToolName(tool);
+        
+        if (status === 'started') {
+            this.showWorking(`${toolLabel}${detail ? ': ' + detail.substring(0, 40) : ''}`);
+        } else if (status === 'progress') {
+            const indicator = this.shadowRoot.querySelector('#status-indicator');
+            if (indicator) {
+                indicator.innerHTML = `<span class="dot-pulse"></span> ${toolLabel}: ${detail.substring(0, 50)}...`;
+            }
+        } else if (status === 'completed') {
+            this._removeIndicator();
+            this.addSystemMessage(`✅ <strong>${toolLabel}</strong> completed. ${detail ? '(' + detail.substring(0, 50) + ')' : ''}`);
+        }
+    }
+
+    /** Format tool name for user display */
+    _formatToolName(toolName) {
+        const names = {
+            'research_support_topic': '🔍 Web Research',
+            'search_knowledge_base': '📚 Knowledge Base Search',
+            'create_itsm_ticket': '🎫 Creating Ticket',
+            'update_itsm_ticket': '📝 Updating Ticket',
+            'lookup_error_code': '🔎 Lookup Error Code',
+            'lookup_portal_page': '🌐 Lookup Portal',
+            'create_issue': '⚠️ Creating Issue',
+            'diagnose_issue': '🔬 Diagnosis',
+            'navigate_user_browser': '🖱️ Navigation',
+            'book_calendar_slot': '📅 Booking Calendar',
+        };
+        return names[toolName] || toolName.replace(/_/g, ' ');
+    }
+
     /** Remove the status indicator */
     _removeIndicator() {
         const existing = this.shadowRoot.querySelector('#status-indicator');

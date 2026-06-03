@@ -153,6 +153,7 @@ class GeminiLive:
                 try:
                     while True:
                         async for response in session.receive():
+                            logger.debug(f"receive_loop: got response with tool_call={bool(response.tool_call)}, server_content={bool(response.server_content)}")
                             server_content = response.server_content
                             tool_call = response.tool_call
 
@@ -249,10 +250,13 @@ class GeminiLive:
                                     await session.send(input=types.LiveClientToolResponse(
                                         function_responses=function_responses
                                     ))
+                        logger.info("session.receive() async for loop ended — no more responses from Gemini")
 
                 except Exception as e:
                     await event_queue.put({"type": "error", "error": str(e)})
+                    logger.error(f"receive_loop error: {e}", exc_info=True)
                 finally:
+                    logger.info("receive_loop ending — putting None to signal session end")
                     await event_queue.put(None)
 
             send_audio_task = asyncio.create_task(send_audio())

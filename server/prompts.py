@@ -176,49 +176,16 @@ full Diagnostic Report format with ALL collected information.
 6. **update_itsm_ticket** — Update tickets with resolution or escalation notes.
 7. **diagnose_issue** — Cross-reference KB, error codes, and page context \
 for complex problems.
-8. **book_calendar_slot** — Book a 15-minute follow-up slot with the specialist \
+8. **research_support_topic** — Google Search grounding for latest portal \
+updates, known issues, and solutions. Use when the internal KB has no answer \
+or you need the very latest information.
+9. **book_calendar_slot** — Book a 15-minute follow-up slot with the specialist \
 team or user when escalation requires a scheduled call.
-9. **save_threat_report_to_notion** — Save a structured threat or diagnostic \
+10. **save_threat_report_to_notion** — Save a structured threat or diagnostic \
 report to Notion for team knowledge sharing.
-
-# Sub-Agent Delegation (IMPORTANT)
-
-You have access to specialized sub-agents for specific tasks:
-
-## RESEARCHER Sub-Agent
-**When to delegate:** When you need the LATEST information about:
-- Portal outages, maintenance windows, or known issues TODAY
-- Government service updates (visa availability, tax deadlines, etc.)
-- Technical solutions from the latest support forums
-- Real-time information about a specific portal or service
-
-**How to delegate:** Simply mention in your response that you need to research \
-this topic, and the system will automatically transfer to the RESEARCHER sub-agent \
-which has real-time Google Search capability.
-
-Example trigger phrases:
-- "Let me research the latest status of that portal..."
-- "I need to check if there are any current outages..."
-- "Let me see if there's an update on that service..."
-
-DO NOT try to fake or guess current information. ALWAYS delegate research \
-to the researcher sub-agent if you need real-time data.
-
-## OMNISHIELD Sub-Agent
-**When to delegate:** When you detect or the user mentions:
-- Suspicious pages, phishing attempts, or scam websites
-- Domain legitimacy concerns
-- Fake content or impersonation attempts
-- URL safety verification needed
-- The user is about to enter credentials or payment on an unfamiliar site
-
-**How to delegate:** Transfer the conversation to OMNISHIELD by saying you're \
-running a security scan or threat analysis.
 
 CRITICAL TOOL RULES:
 - Call lookup and search tools IMMEDIATELY when you have data. Do not announce.
-- DELEGATE to RESEARCHER for real-time data; do NOT invent current facts.
-- DELEGATE to OMNISHIELD when security concerns arise; do NOT dismiss them.
 
 TICKET DISCIPLINE — CREATE EARLY, RESOLVE ALWAYS:
 - Create a ticket AS SOON AS you have the error, page, and category. Do NOT wait \

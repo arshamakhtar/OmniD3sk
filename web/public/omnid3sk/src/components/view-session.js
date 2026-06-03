@@ -1489,6 +1489,11 @@ class ViewSession extends HTMLElement {
                 this._addLogEntry('tool', `<span class="hl">SERVER_TOOL_CALL</span> <span class="key">${response.data.name}</span>(${argsSnippet})`);
                 break;
             }
+            case 'tool_status':
+                // Handle real-time tool status updates
+                this.querySelector('#transcript')?.updateToolStatus(response);
+                this._addLogEntry('tool', `<span class="hl">TOOL_STATUS</span> <span class="key">${response.tool}</span> <span class="val">${response.status}</span>`);
+                break;
             case 'SESSION_STATE':
                 this.handleSessionState(response.data);
                 this._addLogEntry('info', `<span class="hl">SESSION_STATE</span> stage=<span class="val">${response.data?.stage || 'n/a'}</span> checkpoints=<span class="val">${response.data?.checkpoints?.length || 0}</span>`);
