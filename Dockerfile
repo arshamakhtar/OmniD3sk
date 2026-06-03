@@ -18,6 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY server/ ./server/
 COPY omniflow/ ./omniflow/
+COPY *.json ./
 
 # Copy the fresh build from the build-stage
 # (Vite is configured to output to ../../../dist, which resolves to /dist in this context)
