@@ -23,5 +23,6 @@ MONGODB_URI, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET
 ## @ — 
 
 _what ur working on? Add it here._
+Building a form for user to be able to add and learn how to add google calender and notion api for reporting for groups or individuals
 
 ---
